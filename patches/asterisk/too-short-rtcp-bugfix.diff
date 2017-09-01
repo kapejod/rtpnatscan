@@ -1,0 +1,16 @@
+--- a/res/res_rtp_asterisk.c	2017-08-31 17:50:50.000000000 +0200
++++ b/res/res_rtp_asterisk.c	2017-09-01 11:31:57.000000000 +0200
+@@ -4554,6 +4554,12 @@
+ 
+ 	ast_debug(1, "Got RTCP report of %zu bytes\n", size);
+ 
++	if (packetwords < 2) {
++	    // A bit further down you might otherwise read from rtcpheader[1] which is not valid (because the packet was just 4 octets long).
++	    // On my test debian machine this resulted in setting rtcp_report->ssrc to the value of rtp->themssrc (disabling all SSRC checks and making RTCP bleedable again).
++	    return &ast_null_frame;
++	}
++
+ 	while (position < packetwords) {
+ 		int i, pt, rc;
+ 		unsigned int length;
+
